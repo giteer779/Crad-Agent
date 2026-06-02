@@ -14,15 +14,18 @@ export interface Message {
   content: string;
   timestamp: string; // ISO date string
   sources?: Source[];
+  pendingActions?: { id: string; action: string; value: any; label: string }[];
+  actionStatus?: "pending" | "approved" | "rejected";
 }
 
 export interface AgentConfig {
   name: string;
   role: string;
   temperature: number;
-  model: "gemini-3.5-flash" | "gemini-3.1-pro-preview";
+  model: string;
   grounding: boolean;
   avatarSeed: string; // Used to generate distinct UI placeholder icons
+  avatarUrl?: string; // Optional custom avatar image (base64 or URL)
 }
 
 export interface AgentPreset {
@@ -32,7 +35,8 @@ export interface AgentPreset {
   description: string;
   role: string;
   temperature: number;
-  model: "gemini-3.5-flash" | "gemini-3.1-pro-preview";
+  model: string;
   grounding: boolean;
   avatarSeed: string;
+  avatarUrl?: string; // Optional custom avatar image (base64 or URL)
 }

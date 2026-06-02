@@ -11,6 +11,44 @@ import path from "path";
 dotenv.config({ path: path.join(process.cwd(), ".env") });
 dotenv.config();
 
+// Memory buffer for logs
+const logBuffer: { timestamp: string; type: "info" | "warn" | "error"; message: string }[] = [];
+
+function addLog(type: "info" | "warn" | "error", ...args: any[]) {
+  const message = args.map(arg => {
+    if (arg instanceof Error) {
+      return arg.stack || arg.message;
+    }
+    return typeof arg === 'object' ? JSON.stringify(arg) : String(arg);
+  }).join(' ');
+  logBuffer.push({
+    timestamp: new Date().toISOString(),
+    type,
+    message
+  });
+  if (logBuffer.length > 200) {
+    logBuffer.shift();
+  }
+}
+
+// Override console methods to capture them
+const originalLog = console.log;
+const originalWarn = console.warn;
+const originalError = console.error;
+
+console.log = (...args) => {
+  originalLog(...args);
+  addLog("info", ...args);
+};
+console.warn = (...args) => {
+  originalWarn(...args);
+  addLog("warn", ...args);
+};
+console.error = (...args) => {
+  originalError(...args);
+  addLog("error", ...args);
+};
+
 const app = express();
 const PORT = 3000;
 
@@ -122,6 +160,17 @@ function getAiClient(): GoogleGenAI {
   return aiClient;
 }
 
+// Fetch system running logs
+app.get("/api/logs", (req, res) => {
+  res.json(logBuffer);
+});
+
+// Clear system running logs
+app.delete("/api/logs", (req, res) => {
+  logBuffer.length = 0;
+  res.json({ success: true });
+});
+
 // Check key exists API endpoint
 app.get("/api/config", (req, res) => {
   res.json({
@@ -187,10 +236,26 @@ app.delete("/api/conversations/:id", async (req, res) => {
   }
 });
 
+// Update a conversation session configurations
+app.put("/api/conversations/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { agent_name, agent_role, temperature, model, grounding } = req.body;
+    const db = getDbPool();
+    await db.query(
+      "UPDATE conversations SET agent_name = ?, agent_role = ?, temperature = ?, model = ?, grounding = ? WHERE id = ?",
+      [agent_name, agent_role, temperature, model, grounding ? 1 : 0, id]
+    );
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(550).json({ error: "Failed to update conversation: " + err.message });
+  }
+});
+
 // Proxy Gemini API route
 app.post("/api/chat", async (req, res) => {
   try {
-    const { messages, systemInstruction, temperature, model, grounding, conversationId, userMessageId, assistantMessageId } = req.body;
+    const { messages, systemInstruction, temperature, model, grounding, conversationId, userMessageId, assistantMessageId, apiKey } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: "Messages array is required." });
@@ -212,7 +277,19 @@ app.post("/api/chat", async (req, res) => {
       }
     }
 
-    const ai = getAiClient();
+    let ai: GoogleGenAI;
+    if (apiKey && typeof apiKey === "string" && apiKey.trim() !== "") {
+      ai = new GoogleGenAI({
+        apiKey: apiKey.trim(),
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      });
+    } else {
+      ai = getAiClient();
+    }
 
     // Map conversation messages to Gemini contents structure
     const contents = messages.map((msg: any) => ({
