@@ -1,0 +1,6 @@
+{
+  "name": "Agent Command Center",
+  "description": "一个采用 Apple 极简主义美学与毛玻璃设计的智能体指挥中心。支持三栏布局、参数定制和 AI 实时交互。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
