@@ -1483,10 +1483,15 @@ export function processQuery(ctx: SimulationContext): string {
                       setShowPointsModal(true);
                       setUserMenuOpen(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all text-left cursor-pointer border-none bg-transparent"
+                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all cursor-pointer border-none bg-transparent"
                   >
-                    <Coins size={13} className="text-[#5856D6] dark:text-white" />
-                    <span>积分</span>
+                    <div className="flex items-center gap-2.5">
+                      <Coins size={13} className="text-[#5856D6] dark:text-white" />
+                      <span>积分</span>
+                    </div>
+                    <span className="text-[10px] font-medium bg-[#5856D6]/10 dark:bg-white/10 text-[#5856D6] dark:text-white px-2 py-0.5 rounded-lg">
+                      余额: {userPoints.toLocaleString()}
+                    </span>
                   </button>
                   <button
                     type="button"
