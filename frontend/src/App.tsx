@@ -568,43 +568,6 @@ export default function App() {
   const modelDropdownRef = useRef<HTMLDivElement>(null);
   const [presetDropdownOpen, setPresetDropdownOpen] = useState<boolean>(false);
   const presetDropdownRef = useRef<HTMLDivElement>(null);
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const lastWheelTime = useRef<number>(0);
-
-  // Throttled mouse wheel scroll handler to cycle presets circularly
-  useEffect(() => {
-    const carouselEl = carouselRef.current;
-    if (!carouselEl) return;
-
-    const handleWheelEvent = (e: WheelEvent) => {
-      // Prevent the default scroll (avoids sidebar/page scrolling)
-      e.preventDefault();
-
-      const now = Date.now();
-      if (now - lastWheelTime.current < 250) return; // 250ms throttle for smooth interactive scroll
-      lastWheelTime.current = now;
-
-      const len = presets.length;
-      if (len === 0) return;
-      const activeIdx = presets.findIndex(p => p.id === activePresetId);
-      if (activeIdx === -1) return;
-
-      if (e.deltaY > 0) {
-        // Scroll down -> next preset
-        const nextIdx = (activeIdx + 1) % len;
-        handleSelectPreset(presets[nextIdx]);
-      } else if (e.deltaY < 0) {
-        // Scroll up -> previous preset
-        const prevIdx = (activeIdx - 1 + len) % len;
-        handleSelectPreset(presets[prevIdx]);
-      }
-    };
-
-    carouselEl.addEventListener("wheel", handleWheelEvent, { passive: false });
-    return () => {
-      carouselEl.removeEventListener("wheel", handleWheelEvent);
-    };
-  }, [activePresetId, presets]);
 
   // MySQL Database States
   const [conversations, setConversations] = useState<any[]>([]);
@@ -1474,13 +1437,11 @@ export function processQuery(ctx: SimulationContext): string {
               <AnimatePresence initial={false}>
                 {isPresetsExpanded && (
                   <motion.div 
-                    ref={carouselRef}
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="relative flex flex-col items-center select-none w-full justify-center cursor-ns-resize overflow-hidden"
-                    title="使用鼠标滚轮上下切换智能体"
+                    className="relative flex flex-col items-center select-none w-full justify-center overflow-hidden"
                   >
                     {/* Visible Items Container */}
                     <div className="flex flex-col gap-3.5 relative w-full items-center justify-center py-2">
