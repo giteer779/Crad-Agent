@@ -3357,7 +3357,17 @@ export function processQuery(ctx: SimulationContext): string {
                         <div className="mt-3 space-y-2 text-left flex-grow flex flex-col justify-start">
                           <div className="flex justify-between items-center shrink-0">
                             <h4 className="text-xs font-bold text-zinc-900 dark:text-white">{card.name}</h4>
-                            <span className="text-[8.5px] font-bold text-[#5856D6] dark:text-white font-mono bg-[#5856D6]/10 dark:bg-white/10 px-1.5 py-0.5 rounded">
+                            <span className={`text-[8.5px] font-bold font-mono px-2 py-0.5 rounded tracking-wider ${
+                              card.level === 1 
+                                ? "bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/15" 
+                                : card.level === 2 
+                                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20" 
+                                  : card.level === 3 
+                                    ? "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/25" 
+                                    : card.level === 4 
+                                      ? "bg-zinc-950 text-purple-500 dark:text-purple-400 border border-purple-500/30 shadow-[0_2px_8px_rgba(168,85,247,0.15)]" 
+                                      : "bg-gradient-to-r from-rose-500 to-indigo-600 text-white border border-rose-400 shadow-[0_2px_8px_rgba(244,63,94,0.3)] animate-pulse"
+                            }`}>
                               {card.level === 1 && "白银"}
                               {card.level === 2 && "黄金"}
                               {card.level === 3 && "钻石"}
