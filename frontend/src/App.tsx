@@ -1217,7 +1217,10 @@ export function processQuery(ctx: SimulationContext): string {
   };
 
   return (
-    <div className="h-screen w-full bg-[#f5f5f7] dark:bg-[#09090b] text-[#1d1d1f] dark:text-[#fafafa] flex flex-col antialiased transition-colors duration-300 overflow-hidden">
+    <div className="h-screen w-full bg-[#f5f5f7] dark:bg-[#09090b] text-[#1d1d1f] dark:text-[#fafafa] flex flex-col antialiased transition-colors duration-300 overflow-hidden relative">
+      {/* Diffuse Ambient Background Glow */}
+      <div className="absolute top-1/4 left-1/3 w-[600px] h-[600px] rounded-full bg-[#5856D6] opacity-[0.02] dark:opacity-[0.03] blur-[150px] pointer-events-none z-0" />
+      <div className="absolute bottom-1/4 right-1/3 w-[500px] h-[500px] rounded-full bg-[#5856D6] opacity-[0.015] dark:opacity-[0.025] blur-[120px] pointer-events-none z-0" />
       
       {/* Dynamic API status overlay banner */}
       {apiAvailable === false && (
@@ -1398,7 +1401,7 @@ export function processQuery(ctx: SimulationContext): string {
                                 handleSelectPreset(preset);
                               }}
                               className={`
-                                w-full text-left p-3.5 rounded-[22px] border transition-all duration-500 ease-out flex flex-col gap-1 group relative transform
+                                w-full text-left p-3.5 rounded-[22px] border transition-all duration-500 ease-out flex flex-col gap-1 group relative transform active:scale-[0.98]
                                 ${positionClass}
                               `}
                               id={`preset-btn-${preset.id}`}
@@ -1539,7 +1542,7 @@ export function processQuery(ctx: SimulationContext): string {
                       setShowSettingsModal(true);
                       setUserMenuOpen(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all text-left cursor-pointer border-none bg-transparent"
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all text-left cursor-pointer border-none bg-transparent active:scale-[0.97]"
                   >
                     <Settings size={13} className="text-zinc-400 dark:text-zinc-500" />
                     <span>系统设置</span>
@@ -1550,7 +1553,7 @@ export function processQuery(ctx: SimulationContext): string {
                       setShowAccountModal(true);
                       setUserMenuOpen(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all text-left cursor-pointer border-none bg-transparent"
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all text-left cursor-pointer border-none bg-transparent active:scale-[0.97]"
                   >
                     <User size={13} className="text-zinc-400 dark:text-zinc-500" />
                     <span>账号</span>
@@ -1561,7 +1564,7 @@ export function processQuery(ctx: SimulationContext): string {
                       setShowPointsModal(true);
                       setUserMenuOpen(false);
                     }}
-                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all cursor-pointer border-none bg-transparent"
+                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all cursor-pointer border-none bg-transparent active:scale-[0.97]"
                   >
                     <div className="flex items-center gap-2.5">
                       <Coins size={13} className="text-[#5856D6] dark:text-white" />
@@ -1577,7 +1580,7 @@ export function processQuery(ctx: SimulationContext): string {
                       setShowCardsModal(true);
                       setUserMenuOpen(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all text-left cursor-pointer border-none bg-transparent"
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all text-left cursor-pointer border-none bg-transparent active:scale-[0.97]"
                   >
                     <CreditCard size={13} className="text-zinc-400 dark:text-zinc-500" />
                     <span>卡片</span>
