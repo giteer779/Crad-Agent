@@ -139,28 +139,27 @@
   font-weight: 600;
 }
 
-/* 3. Diamond Level (钻石) - Iridescent glare overlay with cyan glowing boundaries */
-@keyframes diamond-glare {
-  0% { transform: translate(-30%, -30%) rotate(0deg); }
-  50% { transform: translate(30%, 30%) rotate(180deg); }
-  100% { transform: translate(-30%, -30%) rotate(360deg); }
+/* 3. Diamond Level (钻石) - Specular crystal diamond sweep with pure white polished border and deep indigo text */
+@keyframes diamond-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 .card-level-3 {
-  background: linear-gradient(135deg, #a5f3fc 0%, #38bdf8 50%, #4f46e5 100%);
-  border-color: #67e8f9;
-  color: #ffffff;
-  box-shadow: inset 0 1px 2.5px rgba(255, 255, 255, 0.5), 0 8px 22px rgba(56, 189, 248, 0.45);
+  background: linear-gradient(120deg, #bae6fd 0%, #e0f2fe 20%, #ffffff 40%, #e0f2fe 60%, #7dd3fc 80%, #38bdf8 100%);
+  background-size: 300% 100%;
+  animation: diamond-sweep 8s linear infinite;
+  border-color: #ffffff;
+  color: #0369a1;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.95), 0 10px 25px rgba(56, 189, 248, 0.45);
+  font-weight: 800;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
   position: relative;
 }
 .card-level-3::after {
   content: '';
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
-  animation: diamond-glare 8s linear infinite;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 50%, rgba(255, 255, 255, 0) 100%);
   pointer-events: none;
 }
 
