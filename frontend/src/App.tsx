@@ -2195,7 +2195,7 @@ export function processQuery(ctx: SimulationContext): string {
               <button
                 type="button"
                 onClick={() => document.getElementById("chat-file-upload")?.click()}
-                className="absolute left-2 top-2 bottom-2 aspect-square rounded-[14px] flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-550 dark:text-zinc-400 transition-all cursor-pointer border border-black/5 dark:border-white/5"
+                className="absolute z-10 left-2 top-2 bottom-2 aspect-square rounded-[14px] flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-500 dark:text-zinc-400 transition-all cursor-pointer border border-black/5 dark:border-white/5"
                 title="选择文件上传"
               >
                 <Upload size={13} />
@@ -2204,10 +2204,10 @@ export function processQuery(ctx: SimulationContext): string {
               <button
                 type="button"
                 onClick={handleToggleSpeech}
-                className={`absolute left-11 top-2 bottom-2 aspect-square rounded-[14px] flex items-center justify-center transition-all cursor-pointer border border-black/5 dark:border-white/5 ${
+                className={`absolute z-10 left-11 top-2 bottom-2 aspect-square rounded-[14px] flex items-center justify-center transition-all cursor-pointer border border-black/5 dark:border-white/5 ${
                   isListening
                     ? "bg-red-500 text-white animate-pulse shadow-md shadow-red-500/30"
-                    : "bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-550 dark:text-zinc-400"
+                    : "bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-500 dark:text-zinc-400"
                 }`}
                 title={isListening ? "正在语音输入...点击停止" : "语音输入"}
               >
@@ -2226,7 +2226,7 @@ export function processQuery(ctx: SimulationContext): string {
               <button
                 type="submit"
                 disabled={(!inputText.trim() && !attachedFile) || isTyping}
-                className={`absolute right-2 top-2 bottom-2 aspect-square rounded-[14px] flex items-center justify-center transition-all ${
+                className={`absolute z-10 right-2 top-2 bottom-2 aspect-square rounded-[14px] flex items-center justify-center transition-all ${
                   inputText.trim() && !isTyping
                     ? "bg-[#5856D6] dark:bg-white text-white dark:text-zinc-950 hover:bg-opacity-95 cursor-pointer shadow-sm"
                     : "bg-slate-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed border border-black/5 dark:border-white/5"
