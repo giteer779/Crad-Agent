@@ -1332,7 +1332,13 @@ export function processQuery(ctx: SimulationContext): string {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsPresetsExpanded(!isPresetsExpanded)}
+                  onClick={() => {
+                    const nextVal = !isPresetsExpanded;
+                    setIsPresetsExpanded(nextVal);
+                    if (!nextVal) {
+                      setIsConfigExpanded(false);
+                    }
+                  }}
                   className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 text-zinc-400 hover:text-zinc-650 dark:hover:text-zinc-350 transition-all cursor-pointer flex items-center justify-center border-none bg-transparent"
                   title={isPresetsExpanded ? "收起预设" : "展开预设"}
                 >
@@ -1972,6 +1978,7 @@ export function processQuery(ctx: SimulationContext): string {
            ======================================================= */}
         <section 
           id="right-chat"
+          onClick={() => setIsConfigExpanded(false)}
           className={`
             relative z-20 flex-grow flex flex-col h-full min-w-0 md:min-w-[420px]
             ${activeMobileView === "chat" ? "flex" : "hidden md:flex"}
