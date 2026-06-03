@@ -34,7 +34,9 @@ import {
   Image,
   User,
   Coins,
-  CreditCard
+  CreditCard,
+  Mic,
+  Paperclip
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Message, AgentConfig, AgentPreset } from "./types";
@@ -299,6 +301,74 @@ export default function App() {
     if (level === 3) return { rate: 0.85, label: "8.5 折" };
     if (level === 4) return { rate: 0.80, label: "8.0 折" };
     return { rate: 0.70, label: "7.0 折" }; // Level 5
+  };
+
+  // State hooks for File Attachments and Speech Recognition voice input
+  const [attachedFile, setAttachedFile] = useState<any>(null);
+  const [attachedFileBase64, setAttachedFileBase64] = useState<string>("");
+  const [isListening, setIsListening] = useState<boolean>(false);
+  const recognitionRef = useRef<any>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAttachedFile(file);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setAttachedFileBase64(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleToggleSpeech = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("抱歉，当前浏览器不支持 Web Speech API 语音输入。请在 Chrome / Safari 浏览器中运行。");
+      return;
+    }
+
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(false);
+    } else {
+      try {
+        const rec = new SpeechRecognition();
+        rec.continuous = false;
+        rec.interimResults = false;
+        rec.lang = "zh-CN";
+
+        rec.onstart = () => {
+          setIsListening(true);
+        };
+
+        rec.onerror = (e: any) => {
+          console.error("Speech recognition error:", e);
+          setIsListening(false);
+        };
+
+        rec.onend = () => {
+          setIsListening(false);
+        };
+
+        rec.onresult = (event: any) => {
+          const resultText = event.results[0][0].transcript;
+          if (resultText) {
+            setInputText(prev => prev + resultText);
+          }
+        };
+
+        recognitionRef.current = rec;
+        rec.start();
+      } catch (err) {
+        console.error("Failed to start SpeechRecognition:", err);
+        setIsListening(false);
+      }
+    }
   };
 
   // Preset Selection & Agent Configuration States
@@ -1033,7 +1103,11 @@ export function processQuery(ctx: SimulationContext): string {
       
       // Delay response slightly for natural feel
       setTimeout(async () => {
-        const simulated = generateSimulatedResponse(userMessage.content, config);
+        let simulatedQuery = userMessage.content;
+        if (userMessage.attachment) {
+          simulatedQuery += `\n\n[已解析用户上传附件: ${userMessage.attachment.name}]`;
+        }
+        const simulated = generateSimulatedResponse(simulatedQuery, config);
         
         let simulatedXml = "";
         const uText = userMessage.content;
@@ -1999,6 +2073,17 @@ export function processQuery(ctx: SimulationContext): string {
                           {msg.content}
                         </div>
 
+                        {/* Rendering attached file in chat bubble */}
+                        {msg.attachment && (
+                          <div className="mt-2.5 p-2 bg-black/10 dark:bg-white/10 border border-black/5 dark:border-white/5 rounded-xl flex items-center gap-2 max-w-[280px]">
+                            <Paperclip size={13} className="text-[#5856D6] dark:text-white shrink-0" />
+                            <div className="min-w-0 text-[10px] text-left">
+                              <span className="font-bold block truncate text-zinc-800 dark:text-zinc-200">{msg.attachment.name}</span>
+                              <span className="opacity-70 block text-zinc-500 dark:text-zinc-400">{(msg.attachment.size / 1024).toFixed(1)} KB • 已解析</span>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Rendering Grounding Citations */}
                         {msg.sources && msg.sources.length > 0 && (
                           <div className="mt-3.5 pt-3 border-t border-black/5 dark:border-white/5 space-y-1.5">
@@ -2103,19 +2188,73 @@ export function processQuery(ctx: SimulationContext): string {
             </div>
 
             {/* Bottom Form Typing Dock */}
+            {attachedFile && (
+              <div className="flex items-center justify-between p-2.5 mb-2 rounded-xl bg-slate-100/80 dark:bg-zinc-900/80 border border-black/5 dark:border-white/5 text-xs text-zinc-700 dark:text-zinc-300 font-sans">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="p-1 rounded bg-[#5856D6]/10 text-[#5856D6] dark:bg-white/10 dark:text-white shrink-0">
+                    <Paperclip size={13} />
+                  </span>
+                  <div className="min-w-0">
+                    <span className="font-bold block truncate">{attachedFile.name}</span>
+                    <span className="text-[10px] text-zinc-400 block">{(attachedFile.size / 1024).toFixed(1)} KB • 待发送</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAttachedFile(null);
+                    setAttachedFileBase64("");
+                  }}
+                  className="p-1 rounded-full hover:bg-slate-200 dark:hover:bg-zinc-800 text-zinc-400 hover:text-red-500 transition-all cursor-pointer border-none bg-transparent"
+                  title="移除文件"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            )}
             <form onSubmit={handleSendMessage} className="relative mt-1 font-sans">
+              {/* Hidden file upload input */}
+              <input 
+                type="file"
+                id="chat-file-upload"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              {/* File upload button */}
+              <button
+                type="button"
+                onClick={() => document.getElementById("chat-file-upload")?.click()}
+                className="absolute left-2 top-2 bottom-2 aspect-square rounded-[14px] flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-550 dark:text-zinc-400 transition-all cursor-pointer border border-black/5 dark:border-white/5"
+                title="选择文件上传"
+              >
+                <Upload size={13} />
+              </button>
+              {/* Speech mic input button */}
+              <button
+                type="button"
+                onClick={handleToggleSpeech}
+                className={`absolute left-11 top-2 bottom-2 aspect-square rounded-[14px] flex items-center justify-center transition-all cursor-pointer border border-black/5 dark:border-white/5 ${
+                  isListening
+                    ? "bg-red-500 text-white animate-pulse shadow-md shadow-red-500/30"
+                    : "bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-550 dark:text-zinc-400"
+                }`}
+                title={isListening ? "正在语音输入...点击停止" : "语音输入"}
+              >
+                <Mic size={13} />
+              </button>
               <input
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="发送指令以控制内核决策..."
-                className="w-full bg-slate-50 dark:bg-zinc-900/90 text-sm pl-4 pr-14 py-4 rounded-[18px] focus:outline-none focus:ring-1 focus:ring-[#5856D6] dark:focus:ring-zinc-600 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 transition-all border border-black/5 dark:border-white/5 shadow-inner"
+                placeholder={isListening ? "正在倾听语音输入..." : "发送指令以控制内核决策..."}
+                className="w-full bg-slate-50 dark:bg-zinc-900/90 text-sm pl-20 pr-14 py-4 rounded-[18px] focus:outline-none focus:ring-1 focus:ring-[#5856D6] dark:focus:ring-zinc-600 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 transition-all border border-black/5 dark:border-white/5 shadow-inner"
+                disabled={isListening}
                 id="input-user-chat"
                 autoComplete="off"
               />
               <button
                 type="submit"
-                disabled={!inputText.trim() || isTyping}
+                disabled={(!inputText.trim() && !attachedFile) || isTyping}
                 className={`absolute right-2 top-2 bottom-2 aspect-square rounded-[14px] flex items-center justify-center transition-all ${
                   inputText.trim() && !isTyping
                     ? "bg-[#5856D6] dark:bg-white text-white dark:text-zinc-950 hover:bg-opacity-95 cursor-pointer shadow-sm"
