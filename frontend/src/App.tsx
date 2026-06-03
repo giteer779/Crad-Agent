@@ -3212,7 +3212,7 @@ export function processQuery(ctx: SimulationContext): string {
                         <motion.div 
                           whileHover={{ y: -8, rotateY: 8, scale: 1.02 }}
                           transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                          className={`w-full aspect-[1.58/1] rounded-xl bg-gradient-to-br border p-3 flex flex-col justify-between relative overflow-hidden cursor-pointer select-none ${bgClass}`}
+                          className={`w-full aspect-[1.58/1] rounded-xl border p-3 flex flex-col justify-between relative overflow-hidden cursor-pointer select-none transition-all duration-550 card-level-${card.level}`}
                           style={{ transformStyle: "preserve-3d", perspective: 1000 }}
                         >
                           {/* Inner reflective glare overlay */}
