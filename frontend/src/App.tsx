@@ -1292,94 +1292,6 @@ export function processQuery(ctx: SimulationContext): string {
             ${activeMobileView === "presets" ? "flex" : "hidden"}
           `}
         >
-          {/* Fixed User Profile Header Block (Always at absolute top, not scrolling) */}
-          <div className="relative mb-2 pb-3 border-b border-black/5 dark:border-white/5 shrink-0" ref={userMenuRef}>
-            <div 
-              onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-slate-100/80 dark:hover:bg-zinc-900/60 border border-transparent hover:border-black/5 dark:hover:border-white/5 transition-all duration-300 cursor-pointer shadow-sm active:scale-98"
-            >
-              {userProfile.avatarUrl ? (
-                <img 
-                  src={userProfile.avatarUrl} 
-                  alt="user avatar" 
-                  className="w-9 h-9 rounded-xl object-cover shadow-sm shrink-0"
-                />
-              ) : (
-                <div className="w-9 h-9 rounded-xl bg-[#5856D6] dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center font-bold shadow-sm shadow-[#5856D6]/20 dark:shadow-white/20 shrink-0">
-                  <User size={16} />
-                </div>
-              )}
-              <div className="flex-grow min-w-0 text-left">
-                <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 block truncate">{userProfile.nickname}</span>
-                <span className="text-[9px] font-mono text-zinc-400 dark:text-zinc-550 block mt-0.5">ADMIN SECURITY LEVEL</span>
-              </div>
-              <ChevronDown size={14} className={`text-zinc-400 transition-transform duration-300 ${userMenuOpen ? "rotate-180" : ""}`} />
-            </div>
-
-            {/* Glassmorphic Dropdown User Menu */}
-            <AnimatePresence>
-              {userMenuOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -15, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -15, scale: 0.95 }}
-                  transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="absolute top-full left-0 right-0 z-50 mt-2 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.18)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.6)] p-1.5 overflow-hidden flex flex-col gap-1 font-sans"
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowSettingsModal(true);
-                      setUserMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all text-left cursor-pointer border-none bg-transparent"
-                  >
-                    <Settings size={13} className="text-zinc-400 dark:text-zinc-500" />
-                    <span>系统设置</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAccountModal(true);
-                      setUserMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all text-left cursor-pointer border-none bg-transparent"
-                  >
-                    <User size={13} className="text-zinc-400 dark:text-zinc-500" />
-                    <span>账号</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowPointsModal(true);
-                      setUserMenuOpen(false);
-                    }}
-                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all cursor-pointer border-none bg-transparent"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Coins size={13} className="text-[#5856D6] dark:text-white" />
-                      <span>积分</span>
-                    </div>
-                    <span className="text-[10px] font-medium bg-[#5856D6]/10 dark:bg-white/10 text-[#5856D6] dark:text-white px-2 py-0.5 rounded-lg">
-                      余额: {userPoints.toLocaleString()}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCardsModal(true);
-                      setUserMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all text-left cursor-pointer border-none bg-transparent"
-                  >
-                    <CreditCard size={13} className="text-zinc-400 dark:text-zinc-500" />
-                    <span>卡片</span>
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
           {/* Scrollable contents container */}
           <div className="flex-grow overflow-y-auto space-y-6 pr-1.5 flex flex-col justify-start">
             {/* Logo Heading and subtle tracker */}
@@ -1581,6 +1493,93 @@ export function processQuery(ctx: SimulationContext): string {
 
           </div>
 
+          {/* Fixed User Profile Footer Block (Always at bottom, not scrolling, top layer) */}
+          <div className="relative mt-2 pt-3 border-t border-black/5 dark:border-white/5 shrink-0" ref={userMenuRef}>
+            <div 
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-slate-100/80 dark:hover:bg-zinc-900/60 border border-transparent hover:border-black/5 dark:hover:border-white/5 transition-all duration-300 cursor-pointer shadow-sm active:scale-98"
+            >
+              {userProfile.avatarUrl ? (
+                <img 
+                  src={userProfile.avatarUrl} 
+                  alt="user avatar" 
+                  className="w-9 h-9 rounded-xl object-cover shadow-sm shrink-0"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-xl bg-[#5856D6] dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center font-bold shadow-sm shadow-[#5856D6]/20 dark:shadow-white/20 shrink-0">
+                  <User size={16} />
+                </div>
+              )}
+              <div className="flex-grow min-w-0 text-left">
+                <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 block truncate">{userProfile.nickname}</span>
+                <span className="text-[9px] font-mono text-zinc-400 dark:text-zinc-550 block mt-0.5">ADMIN SECURITY LEVEL</span>
+              </div>
+              <ChevronDown size={14} className={`text-zinc-400 transition-transform duration-300 ${userMenuOpen ? "rotate-180" : ""}`} />
+            </div>
+
+            {/* Glassmorphic Dropdown User Menu */}
+            <AnimatePresence>
+              {userMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  className="absolute bottom-full left-0 right-0 z-50 mb-2.5 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.18)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.6)] p-1.5 overflow-hidden flex flex-col gap-1 font-sans"
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowSettingsModal(true);
+                      setUserMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all text-left cursor-pointer border-none bg-transparent"
+                  >
+                    <Settings size={13} className="text-zinc-400 dark:text-zinc-500" />
+                    <span>系统设置</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAccountModal(true);
+                      setUserMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all text-left cursor-pointer border-none bg-transparent"
+                  >
+                    <User size={13} className="text-zinc-400 dark:text-zinc-500" />
+                    <span>账号</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPointsModal(true);
+                      setUserMenuOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all cursor-pointer border-none bg-transparent"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Coins size={13} className="text-[#5856D6] dark:text-white" />
+                      <span>积分</span>
+                    </div>
+                    <span className="text-[10px] font-medium bg-[#5856D6]/10 dark:bg-white/10 text-[#5856D6] dark:text-white px-2 py-0.5 rounded-lg">
+                      余额: {userPoints.toLocaleString()}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCardsModal(true);
+                      setUserMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900/60 text-zinc-750 dark:text-zinc-350 text-xs font-semibold tracking-wide transition-all text-left cursor-pointer border-none bg-transparent"
+                  >
+                    <CreditCard size={13} className="text-zinc-400 dark:text-zinc-500" />
+                    <span>卡片</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </aside>
 
         {/* =======================================================
