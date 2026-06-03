@@ -2195,7 +2195,7 @@ export function processQuery(ctx: SimulationContext): string {
               <button
                 type="button"
                 onClick={() => document.getElementById("chat-file-upload")?.click()}
-                className="absolute z-10 left-2 top-2 bottom-2 aspect-square rounded-[14px] flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-500 dark:text-zinc-400 transition-all cursor-pointer border border-black/5 dark:border-white/5"
+                className="absolute z-10 left-3 top-2 bottom-2 aspect-square rounded-[14px] flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-500 dark:text-zinc-400 transition-all cursor-pointer border border-black/5 dark:border-white/5"
                 title="选择文件上传"
               >
                 <Upload size={13} />
@@ -2204,7 +2204,7 @@ export function processQuery(ctx: SimulationContext): string {
               <button
                 type="button"
                 onClick={handleToggleSpeech}
-                className={`absolute z-10 left-11 top-2 bottom-2 aspect-square rounded-[14px] flex items-center justify-center transition-all cursor-pointer border border-black/5 dark:border-white/5 ${
+                className={`absolute z-10 left-13 top-2 bottom-2 aspect-square rounded-[14px] flex items-center justify-center transition-all cursor-pointer border border-black/5 dark:border-white/5 ${
                   isListening
                     ? "bg-red-500 text-white animate-pulse shadow-md shadow-red-500/30"
                     : "bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-500 dark:text-zinc-400"
@@ -2218,7 +2218,7 @@ export function processQuery(ctx: SimulationContext): string {
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={isListening ? "正在倾听语音输入..." : "发送指令以控制内核决策..."}
-                className="w-full bg-slate-50 dark:bg-zinc-900/90 text-sm pl-20 pr-14 py-4 rounded-[18px] focus:outline-none focus:ring-1 focus:ring-[#5856D6] dark:focus:ring-zinc-600 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 transition-all border border-black/5 dark:border-white/5 shadow-inner"
+                className="w-full bg-slate-50 dark:bg-zinc-900/90 text-sm pl-24 pr-14 py-4 rounded-[18px] focus:outline-none focus:ring-1 focus:ring-[#5856D6] dark:focus:ring-zinc-600 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 transition-all border border-black/5 dark:border-white/5 shadow-inner"
                 disabled={isListening}
                 id="input-user-chat"
                 autoComplete="off"
