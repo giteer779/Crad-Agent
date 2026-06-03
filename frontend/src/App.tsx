@@ -171,7 +171,8 @@ const PermissionRequestCard: React.FC<{
   status?: "pending" | "approved" | "rejected";
   onApprove: (messageId: string, selectedIds: string[]) => void;
   onReject: (messageId: string) => void;
-}> = ({ messageId, actions, status = "pending", onApprove, onReject }) => {
+  decisionsLevel: number;
+}> = ({ messageId, actions, status = "pending", onApprove, onReject, decisionsLevel }) => {
   const [selectedIds, setSelectedIds] = useState<string[]>(actions.map(a => a.id));
 
   const toggleSelect = (id: string) => {
@@ -215,6 +216,20 @@ const PermissionRequestCard: React.FC<{
         <ShieldAlert size={14} className="text-[#5856D6] dark:text-white shrink-0" />
         <span>智能体外部操作授权请求</span>
       </div>
+
+      {/* Privilege Status Banner */}
+      {decisionsLevel >= 1 && (
+        <div className="px-2.5 py-1.5 bg-amber-500/10 dark:bg-amber-400/5 text-amber-600 dark:text-amber-400 text-[9px] rounded-lg font-medium flex items-center justify-between border border-amber-500/15 leading-tight">
+          <span className="font-bold">决策秘钥 (Lv.{decisionsLevel}) 特权激活</span>
+          <span className="opacity-90">
+            {decisionsLevel === 1 && "白银：自动筛选"}
+            {decisionsLevel === 2 && "黄金：自动审查"}
+            {decisionsLevel === 3 && "钻石：安全筛除"}
+            {decisionsLevel === 4 && "黑曜：一键过审"}
+            {decisionsLevel === 5 && "至尊：免审静默"}
+          </span>
+        </div>
+      )}
       
       <div className="space-y-2">
         {actions.map((act) => {
@@ -268,6 +283,24 @@ const PermissionRequestCard: React.FC<{
 };
 
 export default function App() {
+  const getTypingDelay = () => {
+    const level = cabinetCards.spark.level;
+    if (level === 1) return 800;
+    if (level === 2) return 600;
+    if (level === 3) return 450;
+    if (level === 4) return 300;
+    return 100; // Level 5
+  };
+
+  const getPointsDiscount = () => {
+    const level = cabinetCards.credits.level;
+    if (level === 1) return { rate: 0.95, label: "9.5 折" };
+    if (level === 2) return { rate: 0.90, label: "9.0 折" };
+    if (level === 3) return { rate: 0.85, label: "8.5 折" };
+    if (level === 4) return { rate: 0.80, label: "8.0 折" };
+    return { rate: 0.70, label: "7.0 折" }; // Level 5
+  };
+
   // Preset Selection & Agent Configuration States
   const [activePresetId, setActivePresetId] = useState<string>("zen");
 
@@ -1097,7 +1130,7 @@ export function processQuery(ctx: SimulationContext): string {
             console.warn("Could not save simulated response to DB:", dbErr);
           }
         }
-      }, 800);
+      }, getTypingDelay());
       return;
     }
 
@@ -1995,6 +2028,18 @@ export function processQuery(ctx: SimulationContext): string {
                       <span className="text-[9px] font-mono text-zinc-400 dark:text-zinc-500 px-2 py-1">
                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
+
+                      {/* Render Permission Request Card if exists */}
+                      {isAssistant && msg.pendingActions && msg.pendingActions.length > 0 && (
+                        <PermissionRequestCard
+                          messageId={msg.id}
+                          actions={msg.pendingActions}
+                          status={msg.actionStatus}
+                          onApprove={handleApproveActions}
+                          onReject={handleRejectActions}
+                          decisionsLevel={cabinetCards.decisions.level}
+                        />
+                      )}
                     </motion.div>
                   );
                 })}
@@ -2928,7 +2973,9 @@ export function processQuery(ctx: SimulationContext): string {
                         { id: "queries_50", name: "50 次 API 特权算力包", cost: 500, desc: "获得 50 次超高速并发多模态查询特权" },
                         { id: "db_expand", name: "数据库无限扩容支持", cost: 800, desc: "解锁云端存储大小限制，全量备份历史对话" }
                       ].map((item, idx) => {
-                        const canRedeem = userPoints >= item.cost;
+                        const discountInfo = getPointsDiscount();
+                        const finalCost = Math.round(item.cost * discountInfo.rate);
+                        const canRedeem = userPoints >= finalCost;
                         return (
                           <div 
                             key={idx}
@@ -2937,16 +2984,21 @@ export function processQuery(ctx: SimulationContext): string {
                             <div className="min-w-0">
                               <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 block">{item.name}</span>
                               <span className="text-[9px] text-zinc-400 dark:text-zinc-555 block mt-0.5 leading-normal">{item.desc}</span>
+                              {discountInfo.rate < 1.0 && (
+                                <span className="text-[8.5px] text-[#5856D6] dark:text-zinc-400 font-bold block mt-0.5">
+                                  已享折扣：{discountInfo.label}（原价 {item.cost} 积分）
+                                </span>
+                              )}
                             </div>
                             
                             <div className="shrink-0 flex items-center gap-2">
-                              <span className="text-xs font-bold font-mono text-zinc-500 dark:text-zinc-400">{item.cost} 积分</span>
+                              <span className="text-xs font-bold font-mono text-zinc-500 dark:text-zinc-400">{finalCost} 积分</span>
                               <button
                                 type="button"
                                 disabled={!canRedeem}
                                 onClick={() => {
-                                  setUserPoints(prev => prev - item.cost);
-                                  alert(`兑换成功！已扣除 ${item.cost} 积分，【${item.name}】已激活并绑定当前账号。`);
+                                  setUserPoints(prev => prev - finalCost);
+                                  alert(`兑换成功！已享【金币算力】卡片特权折扣（${discountInfo.label}），实际扣除 ${finalCost} 积分（原价 ${item.cost}），【${item.name}】已激活！`);
                                 }}
                                 className={`text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                                   canRedeem
@@ -3069,7 +3121,7 @@ export function processQuery(ctx: SimulationContext): string {
                 </div>
 
                 {/* Display Shelves Area */}
-                <div className="flex-grow grid grid-cols-3 gap-5 items-stretch overflow-hidden py-2 text-left">
+                <div className="flex-grow grid grid-cols-3 gap-5 items-stretch overflow-y-auto max-h-[350px] pr-1 py-2 text-left">
                   {[
                     {
                       id: "spark",
@@ -3077,15 +3129,22 @@ export function processQuery(ctx: SimulationContext): string {
                       desc: "累积与微内核的对话交互频次",
                       progress: cabinetCards.spark.progress,
                       level: cabinetCards.spark.level,
-                      thresholds: [10, 30, 80, 150, 300],
-                      levelNames: ["铁皮卡 · 语义余火", "青铜卡 · 逻辑流光", "白银卡 · 智慧潮汐", "黄金卡 · 意识风暴", "陨铁卡 · 混沌晶核"],
+                      thresholds: [10, 100, 500, 1500, 5000],
+                      levelNames: ["白银卡 · 语义余火", "黄金卡 · 逻辑流光", "钻石卡 · 智慧潮汐", "黑曜卡 · 意识风暴", "至尊卡 · 混沌晶核"],
+                      effects: [
+                        "回复延迟缩短至 800ms，开启基础对话联想",
+                        "回复延迟缩短至 600ms，开启智能记忆扩容",
+                        "回复延迟缩短至 450ms，允许自动补全常见代码块",
+                        "回复延迟缩短至 300ms，激活 Agent 推理过程实时可视化",
+                        "回复延迟缩短至 100ms，尊享云端超高速独占推理通道"
+                      ],
                       icon: <Sparkles size={18} />,
                       colors: [
-                        "from-zinc-400 to-zinc-600 border-zinc-350 text-zinc-100 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]", // Lv 1
-                        "from-amber-600 to-amber-800 border-amber-500 text-amber-50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]", // Lv 2
-                        "from-slate-200 to-slate-450 border-slate-200 text-slate-900 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]", // Lv 3
-                        "from-yellow-400 via-amber-400 to-yellow-600 border-yellow-350 text-yellow-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] font-semibold", // Lv 4
-                        "from-indigo-600 via-purple-600 to-pink-500 border-indigo-400 text-white shadow-[0_4px_20px_rgba(139,92,246,0.35)]" // Lv 5
+                        "from-slate-200 to-slate-450 border-slate-350 text-slate-900 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]", // 白银
+                        "from-amber-400 via-yellow-400 to-yellow-600 border-yellow-350 text-yellow-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] font-semibold", // 黄金
+                        "from-cyan-300 via-blue-400 to-indigo-500 border-cyan-200 text-white shadow-[0_4px_20px_rgba(6,182,212,0.45)]", // 钻石
+                        "from-neutral-800 via-stone-900 to-zinc-950 border-neutral-700 text-zinc-100 shadow-[0_4px_20px_rgba(0,0,0,0.65)]", // 黑曜
+                        "from-rose-500 via-violet-600 to-indigo-700 border-rose-400 text-white shadow-[0_6px_25px_rgba(244,63,94,0.5)]" // 至尊
                       ]
                     },
                     {
@@ -3094,15 +3153,22 @@ export function processQuery(ctx: SimulationContext): string {
                       desc: "当前钱包累计持有的积分算力",
                       progress: cabinetCards.credits.progress,
                       level: cabinetCards.credits.level,
-                      thresholds: [1000, 3000, 6000, 10000, 20000],
-                      levelNames: ["铁皮卡 · 算力微光", "青铜卡 · 燃料熔炉", "白银卡 · 金色储备", "黄金卡 · 恒星矩阵", "陨铁卡 · 算力主宰"],
+                      thresholds: [10, 100, 500, 1500, 5000],
+                      levelNames: ["白银卡 · 算力微光", "黄金卡 · 燃料熔炉", "钻石卡 · 金色储备", "黑曜卡 · 恒星矩阵", "至尊卡 · 算力主宰"],
+                      effects: [
+                        "积分兑换特权享 9.5 折优惠",
+                        "积分兑换特权享 9.0 折优惠，额外解锁高级充值额度",
+                        "积分兑换特权享 8.5 折优惠，每日首次登录赠送 10 积分",
+                        "积分兑换特权享 8.0 折优惠，开启专属大额快捷兑换通道",
+                        "积分兑换特权享 7.0 折特惠，开启专属节日积分空投权益"
+                      ],
                       icon: <Coins size={18} />,
                       colors: [
-                        "from-zinc-400 to-zinc-600 border-zinc-350 text-zinc-100 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]",
-                        "from-amber-600 to-amber-800 border-amber-500 text-amber-50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]",
-                        "from-slate-200 to-slate-450 border-slate-200 text-slate-900 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]",
-                        "from-yellow-400 via-amber-400 to-yellow-600 border-yellow-350 text-yellow-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] font-semibold",
-                        "from-cyan-600 via-teal-500 to-emerald-500 border-cyan-400 text-white shadow-[0_4px_20px_rgba(6,182,212,0.35)]"
+                        "from-slate-200 to-slate-450 border-slate-350 text-slate-900 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]",
+                        "from-amber-400 via-yellow-400 to-yellow-600 border-yellow-350 text-yellow-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] font-semibold",
+                        "from-cyan-300 via-blue-400 to-indigo-500 border-cyan-200 text-white shadow-[0_4px_20px_rgba(6,182,212,0.45)]",
+                        "from-neutral-800 via-stone-900 to-zinc-950 border-neutral-700 text-zinc-100 shadow-[0_4px_20px_rgba(0,0,0,0.65)]",
+                        "from-rose-500 via-violet-600 to-indigo-700 border-rose-400 text-white shadow-[0_6px_25px_rgba(244,63,94,0.5)]"
                       ]
                     },
                     {
@@ -3111,15 +3177,22 @@ export function processQuery(ctx: SimulationContext): string {
                       desc: "授权安全沙箱执行指令决策数",
                       progress: cabinetCards.decisions.progress,
                       level: cabinetCards.decisions.level,
-                      thresholds: [5, 15, 30, 60, 100],
-                      levelNames: ["铁皮卡 · 指令学者", "青铜卡 · 观察专员", "白银卡 · 内核仲裁", "黄金卡 · 主权决断", "陨铁卡 · 内核主宰"],
+                      thresholds: [10, 100, 500, 1500, 5000],
+                      levelNames: ["白银卡 · 指令学者", "黄金卡 · 观察专员", "钻石卡 · 内核仲裁", "黑曜卡 · 主权决断", "至尊卡 · 内核主宰"],
+                      effects: [
+                        "允许安全沙箱自动审批低敏感等级的文件读取指令",
+                        "允许安全沙箱自动审批全部文件读取及基本命令行查看",
+                        "允许自动审批无破坏性的后台依赖库安全安装命令",
+                        "支持对可信域内执行的所有外部命令进行一键静默授权",
+                        "终极特权：免审批静默运行所有内核安全决策沙箱"
+                      ],
                       icon: <CreditCard size={18} />,
                       colors: [
-                        "from-zinc-400 to-zinc-600 border-zinc-350 text-zinc-100 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]",
-                        "from-amber-600 to-amber-800 border-amber-500 text-amber-50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]",
-                        "from-slate-200 to-slate-450 border-slate-200 text-slate-900 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]",
-                        "from-yellow-400 via-amber-400 to-yellow-600 border-yellow-350 text-yellow-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] font-semibold",
-                        "from-rose-600 via-orange-500 to-yellow-500 border-rose-400 text-white shadow-[0_4px_20px_rgba(244,63,94,0.35)]"
+                        "from-slate-200 to-slate-450 border-slate-350 text-slate-900 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]",
+                        "from-amber-400 via-yellow-400 to-yellow-600 border-yellow-350 text-yellow-950 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] font-semibold",
+                        "from-cyan-300 via-blue-400 to-indigo-500 border-cyan-200 text-white shadow-[0_4px_20px_rgba(6,182,212,0.45)]",
+                        "from-neutral-800 via-stone-900 to-zinc-950 border-neutral-700 text-zinc-100 shadow-[0_4px_20px_rgba(0,0,0,0.65)]",
+                        "from-rose-500 via-violet-600 to-indigo-700 border-rose-400 text-white shadow-[0_6px_25px_rgba(244,63,94,0.5)]"
                       ]
                     }
                   ].map((card) => {
@@ -3168,9 +3241,31 @@ export function processQuery(ctx: SimulationContext): string {
                         </motion.div>
 
                         {/* Title and details */}
-                        <div className="mt-3 space-y-1 text-left flex-grow">
-                          <h4 className="text-xs font-bold text-zinc-900 dark:text-white">{card.name}</h4>
-                          <p className="text-[9.5px] text-zinc-400 dark:text-zinc-555 leading-relaxed font-sans">{card.desc}</p>
+                        <div className="mt-3 space-y-2 text-left flex-grow flex flex-col justify-start">
+                          <div className="flex justify-between items-center shrink-0">
+                            <h4 className="text-xs font-bold text-zinc-900 dark:text-white">{card.name}</h4>
+                            <span className="text-[8.5px] font-bold text-[#5856D6] dark:text-white font-mono bg-[#5856D6]/10 dark:bg-white/10 px-1.5 py-0.5 rounded">
+                              {card.level === 1 && "白银"}
+                              {card.level === 2 && "黄金"}
+                              {card.level === 3 && "钻石"}
+                              {card.level === 4 && "黑曜"}
+                              {card.level === 5 && "至尊"}
+                            </span>
+                          </div>
+                          <p className="text-[9px] text-zinc-400 dark:text-zinc-555 leading-snug font-sans shrink-0">{card.desc}</p>
+                          
+                          {/* Level Effect Box */}
+                          <div className="bg-slate-100/70 dark:bg-zinc-900/70 p-2 rounded-xl border border-black/5 dark:border-white/5 space-y-1 text-[9px] mt-1 shrink-0">
+                            <span className="text-zinc-450 dark:text-zinc-500 font-bold block">当前等级效果：</span>
+                            <span className="text-zinc-700 dark:text-zinc-300 block font-medium leading-snug">{card.effects[card.level - 1]}</span>
+                          </div>
+
+                          {!isMaxLevel && (
+                            <div className="space-y-0.5 text-[8.5px] border-t border-black/5 dark:border-white/5 pt-1.5 mt-1.5 shrink-0">
+                              <span className="text-zinc-400 font-bold block">下一级进阶特权 ({card.levelNames[card.level].split(" · ")[0]})：</span>
+                              <span className="text-zinc-500 dark:text-zinc-450 block italic leading-snug">{card.effects[card.level]}</span>
+                            </div>
+                          )}
                         </div>
 
                         {/* Progress and Level Controls */}
