@@ -826,11 +826,16 @@ export default function App() {
   // Responsive view focus for small screens ('presets' | 'config' | 'chat')
   const [activeMobileView, setActiveMobileView] = useState<"presets" | "config" | "chat">("chat");
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll on new messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+    }
   }, [messages, isTyping]);
 
   // Synchronize system dark mode and theme classes
@@ -1217,23 +1222,27 @@ export function processQuery(ctx: SimulationContext): string {
   };
 
   return (
-    <div className="h-screen w-full bg-[#f5f5f7] dark:bg-[#09090b] text-[#1d1d1f] dark:text-[#fafafa] flex flex-col antialiased transition-colors duration-300 overflow-hidden relative">
+    <div className="h-screen w-full bg-[#f5f5f7] dark:bg-[#09090b] text-[#1d1d1f] dark:text-[#fafafa] antialiased transition-colors duration-300 overflow-hidden relative">
       {/* Diffuse Ambient Background Glow */}
       <div className="absolute top-1/4 left-1/3 w-[600px] h-[600px] rounded-full bg-[#5856D6] opacity-[0.02] dark:opacity-[0.03] blur-[150px] pointer-events-none z-0" />
       <div className="absolute bottom-1/4 right-1/3 w-[500px] h-[500px] rounded-full bg-[#5856D6] opacity-[0.015] dark:opacity-[0.025] blur-[120px] pointer-events-none z-0" />
       
-      {/* Dynamic API status overlay banner */}
-      {apiAvailable === false && (
-        <div id="banner-api" className="bg-[#5856D6]/10 dark:bg-white/5 backdrop-blur-md text-xs text-[#5856D6] dark:text-zinc-300 px-4 py-2 text-center flex items-center justify-center gap-2 transition-all border-b border-[#5856D6]/10 dark:border-white/5">
-          <ShieldAlert size={14} className="shrink-0 text-[#5856D6] dark:text-white" />
-          <span>
-            <strong>模拟渲染中</strong> — 当前尚未检测到 <strong>GEMINI_API_KEY</strong>。程序已自动激活备用对话引擎，提供流畅交互。配制密钥后自动激活硬件加速。
-          </span>
-        </div>
-      )}
+      {/* Grid Layout Container */}
+      <div className="app-grid-layout w-full h-full">
+        {/* Dynamic API status overlay banner */}
+        {apiAvailable === false && (
+          <div id="banner-api" className="row-start-1 bg-[#5856D6]/10 dark:bg-white/5 backdrop-blur-md text-xs text-[#5856D6] dark:text-zinc-300 px-4 py-2 text-center flex items-center justify-center gap-2 transition-all border-b border-[#5856D6]/10 dark:border-white/5">
+            <ShieldAlert size={14} className="shrink-0 text-[#5856D6] dark:text-white" />
+            <span>
+              <strong>模拟渲染中</strong> — 当前尚未检测到 <strong>GEMINI_API_KEY</strong>。程序已自动激活备用对话引擎，提供流畅交互。配制密钥后自动激活硬件加速。
+            </span>
+          </div>
+        )}
 
-      {/* Main Grid structure Container */}
-      <div className="flex-grow flex flex-col md:flex-row min-h-0 max-w-[1700px] w-full mx-auto md:p-6 lg:p-8 gap-6 overflow-hidden">
+        {/* Main Grid structure Container */}
+        <div 
+          className="main-layout-container row-start-2 h-full flex flex-col md:flex-row min-h-0 max-w-[1700px] w-full mx-auto md:p-6 lg:p-8 gap-6 overflow-hidden"
+        >
         
         {/* MOBILE VIEW TOGGLE RAIL: consistent operational logic on pocket screens */}
         <div className="md:hidden flex justify-between items-center bg-white/90 dark:bg-[#09090b]/90 backdrop-blur-lg px-4 py-3 sticky top-0 z-50 shadow-sm border-b border-black/5 dark:border-white/5">
@@ -2024,7 +2033,7 @@ export function processQuery(ctx: SimulationContext): string {
             </div>
 
             {/* Bubble Message Stream Container */}
-            <div className="flex-grow overflow-y-auto space-y-4 px-1 pr-2 py-2">
+            <div ref={chatContainerRef} className="flex-grow overflow-y-auto space-y-4 px-1 pr-2 py-2">
               <AnimatePresence initial={false}>
                 {messages.map((msg) => {
                   const isAssistant = msg.role === "assistant";
@@ -2124,7 +2133,6 @@ export function processQuery(ctx: SimulationContext): string {
                   </motion.div>
                 )}
               </AnimatePresence>
-              <div ref={messagesEndRef} />
             </div>
 
             {/* Quick Helper dynamic recommendation chips */}
@@ -2243,6 +2251,7 @@ export function processQuery(ctx: SimulationContext): string {
           </div>
         </section>
 
+      </div>
       </div>
 
       {/* System Settings Modal */}

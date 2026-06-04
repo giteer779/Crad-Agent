@@ -16,6 +16,12 @@ export interface Message {
   sources?: Source[];
   pendingActions?: { id: string; action: string; value: any; label: string }[];
   actionStatus?: "pending" | "approved" | "rejected";
+  attachment?: {
+    name: string;
+    size: number;
+    type: string;
+    dataUrl?: string;
+  };
 }
 
 export interface AgentConfig {
